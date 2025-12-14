@@ -227,28 +227,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       if (error) throw error;
 
-      const newDeposit: DepositHistoryItem = {
-        id: depositData.id,
-        slNo: deposits.length + 1,
-        appliedDate: new Date(depositData.applied_date).toLocaleString(),
-        usd: Number(depositData.amount),
-        coinType: depositData.coin_type,
-        coinValue: Number(depositData.coin_value),
-        approveDate: '-',
-        status: depositData.status
-      };
-      setDeposits(prev => [newDeposit, ...prev]);
+      const { error: approveError } = await supabase.rpc('approve_deposit', {
+        deposit_id: depositData.id
+      });
 
-      await supabase
-        .from('transactions')
-        .insert({
-          user_id: user.id,
-          amount: amount,
-          type: 'Deposit',
-          wallet_type: 'deposit',
-          description: 'Deposit Request',
-          status: 'Pending'
-        });
+      if (approveError) throw approveError;
+
+      await loadWalletsAndHistory(user.id);
 
       return true;
     } catch (e) {
