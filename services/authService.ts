@@ -53,18 +53,17 @@ export const authService = {
   async signIn(data: SignInData) {
     const { username, password } = data;
 
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('email')
-      .eq('username', username)
-      .maybeSingle();
+    const { data: email, error: lookupError } = await supabase.rpc(
+      'get_email_by_username',
+      { p_username: username }
+    );
 
-    if (!profile || !profile.email) {
+    if (lookupError || !email) {
       throw new Error('Invalid username or password');
     }
 
     const { data: authData, error } = await supabase.auth.signInWithPassword({
-      email: profile.email,
+      email: email,
       password,
     });
 
