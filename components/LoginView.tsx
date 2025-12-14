@@ -6,14 +6,55 @@ interface LoginViewProps {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
-  const [username, setUsername] = useState('Gebeyehu');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [captcha, setCaptcha] = useState('');
-  const { login } = useAppContext();
+  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { signIn, signUp } = useAppContext();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(); // Trigger context login state
+    setError('');
+    setLoading(true);
+
+    try {
+      if (isSignUp) {
+        if (!email || !password || !username || !name) {
+          setError('Please fill in all required fields');
+          setLoading(false);
+          return;
+        }
+        if (password.length < 6) {
+          setError('Password must be at least 6 characters');
+          setLoading(false);
+          return;
+        }
+        await signUp({
+          email,
+          password,
+          username,
+          name,
+          phone,
+          country,
+        });
+      } else {
+        if (!email || !password) {
+          setError('Please enter email and password');
+          setLoading(false);
+          return;
+        }
+        await signIn({ email, password });
+      }
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,68 +100,117 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
           </div>
 
           <h2 className="text-white font-bold text-lg mb-6 text-center leading-snug drop-shadow-md">
-            Please sign-in to your account and start the adventure
+            {isSignUp ? 'Create your account and start the adventure' : 'Please sign-in to your account and start the adventure'}
           </h2>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-white text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <>
+                <div className="space-y-1">
+                  <label className="text-white text-sm pl-1 font-medium">Username *</label>
+                  <input
+                    type="text"
+                    placeholder="Choose a username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-white text-sm pl-1 font-medium">Full Name *</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-white text-sm pl-1 font-medium">Phone</label>
+                  <input
+                    type="tel"
+                    placeholder="Phone number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-white text-sm pl-1 font-medium">Country</label>
+                  <input
+                    type="text"
+                    placeholder="Your country"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
+                  />
+                </div>
+              </>
+            )}
+
             <div className="space-y-1">
-              <label className="text-white text-sm pl-1 font-medium">Enter Your Username</label>
+              <label className="text-white text-sm pl-1 font-medium">Email Address *</label>
               <input
-                type="text"
-                placeholder="User ID"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                placeholder="your.email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-white text-sm pl-1 font-medium">Enter Your Password</label>
+              <label className="text-white text-sm pl-1 font-medium">Password *</label>
               <input
                 type="password"
-                placeholder="Password"
+                placeholder="Enter password (min 6 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
                 className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
               />
             </div>
 
-            <div className="flex items-center gap-2 pl-1 py-1">
-              <input type="checkbox" id="remember" className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer" />
-              <label htmlFor="remember" className="text-white font-bold text-sm cursor-pointer select-none">Remember Me</label>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-white text-sm pl-1 font-medium">Enter Captcha *</label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-purple-100/90 rounded-lg flex items-center justify-center relative overflow-hidden select-none border border-purple-300">
-                  {/* Mock Captcha Pattern */}
-                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes-light.png')] opacity-20"></div>
-                  {/* Random lines */}
-                  <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-50">
-                    <line x1="0" y1="100%" x2="100%" y2="0" stroke="purple" strokeWidth="1" />
-                    <line x1="0" y1="0" x2="100%" y2="100%" stroke="purple" strokeWidth="1" />
-                  </svg>
-                  <div className="relative z-10 font-mono text-2xl font-black text-purple-800 tracking-[0.2em] transform -rotate-2 drop-shadow-sm" style={{ fontFamily: 'Courier New, monospace' }}>5295</div>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Enter Captcha"
-                  value={captcha}
-                  onChange={(e) => setCaptcha(e.target.value)}
-                  className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-center transition-shadow shadow-inner"
-                />
+            {!isSignUp && (
+              <div className="flex items-center gap-2 pl-1 py-1">
+                <input type="checkbox" id="remember" className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer" />
+                <label htmlFor="remember" className="text-white font-bold text-sm cursor-pointer select-none">Remember Me</label>
               </div>
-            </div>
+            )}
 
-            <button type="submit" className="w-full bg-gradient-to-r from-[#b02dad] to-[#9333ea] hover:from-[#c03eae] hover:to-[#a855f7] text-white font-bold py-3.5 rounded-lg shadow-[0_4px_14px_0_rgba(192,62,174,0.39)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 mt-4 text-lg">
-              Log In
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-[#b02dad] to-[#9333ea] hover:from-[#c03eae] hover:to-[#a855f7] text-white font-bold py-3.5 rounded-lg shadow-[0_4px_14px_0_rgba(192,62,174,0.39)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 mt-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Sign In')}
             </button>
           </form>
 
           <div className="mt-8 text-center space-y-4">
-            <button className="text-white font-bold hover:text-purple-300 text-sm block w-full transition-colors drop-shadow-md">Forgot Password ?</button>
-            <button className="text-white font-bold hover:text-purple-300 text-sm block w-full transition-colors drop-shadow-md">Don't Have an Account ? Click Here</button>
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+              }}
+              className="text-white font-bold hover:text-purple-300 text-sm block w-full transition-colors drop-shadow-md"
+            >
+              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+            </button>
           </div>
 
           {/* Bottom Glow */}

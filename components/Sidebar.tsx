@@ -26,7 +26,7 @@ interface SidebarProps {
   onClose: () => void;
   currentView: string;
   onChangeView: (id: string) => void;
-  onLogout: () => void;
+  onLogout: () => Promise<void>;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -216,7 +216,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, 
 
           <div className="mt-8 pt-4 border-t border-nexus-primary/20 px-4">
             <button
-              onClick={onLogout}
+              onClick={() => onLogout()}
               className="flex items-center gap-4 px-2 py-3 text-nexus-muted hover:text-white w-full transition-colors"
             >
               <LogOut size={18} />

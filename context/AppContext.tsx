@@ -9,8 +9,9 @@ import {
   Transaction,
   ChatbotTicket
 } from '../types';
-import { userService } from '../services/userService';
 import { walletService } from '../services/walletService';
+import { authService, SignInData, SignUpData } from '../services/authService';
+import { supabase } from '../services/supabase';
 
 interface AppContextType {
   isLoggedIn: boolean;
@@ -25,8 +26,9 @@ interface AppContextType {
   tickets: ChatbotTicket[];
 
   // Actions
-  login: () => void;
-  logout: () => void;
+  signIn: (data: SignInData) => Promise<void>;
+  signUp: (data: SignUpData) => Promise<void>;
+  logout: () => Promise<void>;
   depositFunds: (amount: number) => Promise<boolean>;
   buyPackage: (pkgName: string, amount: number, wallet: string) => Promise<boolean>;
   transferFunds: (fromWallet: keyof WalletState, toWallet: keyof WalletState, amount: number, isExternal: boolean, extAddress?: string) => Promise<boolean>;
@@ -47,7 +49,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [wallets, setWallets] = useState<WalletState>(defaultWallets);
 
@@ -59,39 +61,124 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [tickets, setTickets] = useState<ChatbotTicket[]>([]);
 
-  // Load initial data on mount (or when logged in, in a real app)
   useEffect(() => {
-    const initData = async () => {
-      setIsLoading(true);
-      try {
-        const userRes = await userService.getProfile();
-        setUser(userRes.data);
+    checkSession();
 
-        const walletRes = await walletService.getWallets();
-        setWallets(walletRes.data);
-
-        const historyRes = await walletService.getHistory();
-        setDeposits(historyRes.data.deposits);
-        setPurchases(historyRes.data.purchases);
-        setTransfers(historyRes.data.transfers);
-        setWithdrawals(historyRes.data.withdrawals);
-        setTransactions(historyRes.data.transactions);
-      } catch (error) {
-        console.error("Failed to load initial data", error);
-      } finally {
-        setIsLoading(false);
+    const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        await loadUserData();
+        setIsLoggedIn(true);
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setUser(null);
+        setWallets(defaultWallets);
       }
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
+  }, []);
 
-    if (isLoggedIn) {
-      initData();
+  const checkSession = async () => {
+    try {
+      const session = await authService.getSession();
+      if (session) {
+        await loadUserData();
+        setIsLoggedIn(true);
+      }
+    } catch (error) {
+      console.error('Session check failed:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [isLoggedIn]);
+  };
 
-  const login = () => setIsLoggedIn(true);
-  const logout = () => {
-    setIsLoggedIn(false);
-    setUser(null);
+  const loadUserData = async () => {
+    try {
+      const currentUser = await authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+        await loadWalletsAndHistory(currentUser.id);
+      }
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+    }
+  };
+
+  const loadWalletsAndHistory = async (userId: string) => {
+    try {
+      const { data: walletData } = await supabase
+        .from('wallets')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (walletData) {
+        setWallets({
+          deposit: Number(walletData.deposit_balance) || 0,
+          botEarning: Number(walletData.bot_earning_balance) || 0,
+          networkEarning: Number(walletData.network_earning_balance) || 0,
+          traydAi: Number(walletData.trayd_ai_balance) || 0,
+          compounding: Number(walletData.compounding_balance) || 0,
+        });
+      }
+
+      const { data: transactionsData } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (transactionsData) {
+        const txs: Transaction[] = transactionsData.map((tx: any) => ({
+          id: tx.id,
+          date: new Date(tx.created_at).toLocaleDateString(),
+          description: tx.description || tx.type,
+          amount: Number(tx.amount),
+          type: tx.type,
+          status: tx.status,
+        }));
+        setTransactions(txs);
+      }
+    } catch (error) {
+      console.error('Failed to load wallets and history:', error);
+    }
+  };
+
+  const signIn = async (data: SignInData) => {
+    setIsLoading(true);
+    try {
+      await authService.signIn(data);
+    } catch (error: any) {
+      console.error('Sign in failed:', error);
+      throw new Error(error.message || 'Invalid credentials');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signUp = async (data: SignUpData) => {
+    setIsLoading(true);
+    try {
+      await authService.signUp(data);
+    } catch (error: any) {
+      console.error('Sign up failed:', error);
+      throw new Error(error.message || 'Sign up failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await authService.signOut();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const depositFunds = async (amount: number): Promise<boolean> => {
@@ -233,7 +320,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   return (
     <AppContext.Provider value={{
       isLoggedIn, isLoading, user, wallets, deposits, purchases, transfers, withdrawals, transactions, tickets,
-      login, logout, depositFunds, buyPackage, transferFunds, withdrawFunds, createTicket, updateProfile
+      signIn, signUp, logout, depositFunds, buyPackage, transferFunds, withdrawFunds, createTicket, updateProfile
     }}>
       {children}
     </AppContext.Provider>

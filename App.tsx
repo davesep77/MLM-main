@@ -236,7 +236,7 @@ const CareerRanksGrid = () => {
 // --- Main App ---
 
 function App() {
-  const { isLoggedIn, login, logout, wallets } = useAppContext();
+  const { isLoggedIn, logout, wallets, isLoading } = useAppContext();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
 
@@ -436,8 +436,16 @@ function App() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full bg-[#0f0518] flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   if (!isLoggedIn) {
-    return <LoginView onLogin={login} />;
+    return <LoginView onLogin={() => {}} />;
   }
 
   return (
