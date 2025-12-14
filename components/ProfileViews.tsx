@@ -28,7 +28,7 @@ import { useAppContext } from '../context/AppContext';
 import { userService } from '../services/userService';
 
 export const ProfileDetails: React.FC = () => {
-  const { user, updateProfile } = useAppContext();
+  const { user, updateProfile, reloadUser } = useAppContext();
 
   // Safe guard loading state
   if (!user) return <div className="p-8 text-white">Loading profile...</div>;
@@ -68,9 +68,9 @@ export const ProfileDetails: React.FC = () => {
     if (!selectedFile || !user) return;
     try {
       await userService.uploadProfileImage(user.id, selectedFile);
+      await reloadUser();
       alert("Profile Picture Uploaded Successfully!");
       setSelectedFile(null);
-      // Ideally trigger a profile refresh here
     } catch (e: any) {
       alert("Upload failed: " + e.message);
     }

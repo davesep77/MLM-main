@@ -11,6 +11,7 @@ import {
 } from '../types';
 import { walletService } from '../services/walletService';
 import { authService, SignInData, SignUpData } from '../services/authService';
+import { userService } from '../services/userService';
 import { supabase } from '../services/supabase';
 
 interface AppContextType {
@@ -35,6 +36,7 @@ interface AppContextType {
   withdrawFunds: (wallet: keyof WalletState, amount: number) => Promise<boolean>;
   createTicket: (subject: string, description: string) => void;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  reloadUser: () => Promise<void>;
 }
 
 const defaultWallets: WalletState = {
@@ -311,16 +313,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setIsLoading(true);
     try {
       await userService.updateProfile(updates);
-      setUser(prev => (prev ? { ...prev, ...updates } : null));
+      await loadUserData();
     } finally {
       setIsLoading(false);
     }
   };
 
+  const reloadUser = async () => {
+    await loadUserData();
+  };
+
   return (
     <AppContext.Provider value={{
       isLoggedIn, isLoading, user, wallets, deposits, purchases, transfers, withdrawals, transactions, tickets,
-      signIn, signUp, logout, depositFunds, buyPackage, transferFunds, withdrawFunds, createTicket, updateProfile
+      signIn, signUp, logout, depositFunds, buyPackage, transferFunds, withdrawFunds, createTicket, updateProfile, reloadUser
     }}>
       {children}
     </AppContext.Provider>

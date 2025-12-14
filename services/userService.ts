@@ -1,47 +1,57 @@
 import { UserProfile } from '../types';
-import { mockApiResponse } from './api';
-
-// Initial Mock Data (Moved from Context)
-const DEFAULT_USER: UserProfile = {
-    id: 'TAI768273',
-    username: 'Gebeyehu',
-    name: 'Gebeyehu Lanteyderu',
-    email: 'gebeyehuasefa42@gmail.com',
-    phone: '0911771387',
-    country: 'Ethiopia',
-    sponsorId: 'TAI221381',
-    sponsorName: 'Jango',
-    walletAddress: 'TGAC9ea1EGT3eDJxjayH6nwYDMyaTBCR62',
-    image: 'https://img.freepik.com/free-vector/cute-robot-wearing-hat-flying-cartoon-vector-icon-illustration-science-technology-icon-isolated_138676-5186.jpg'
-};
+import { supabase } from './supabase';
 
 export const userService = {
-    getProfile: async (userId: string = 'TAI768273') => {
-        return mockApiResponse<UserProfile>(`user?id=${userId}`);
-    },
-
     updateProfile: async (updates: Partial<UserProfile>) => {
-        // Send updates to the backend
-        // We include the ID in the body to ensure the backend validates it
-        const payload = { id: 'TAI768273', ...updates };
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
 
-        return mockApiResponse<UserProfile>('users/profile', 'POST', payload);
+        const updateData: any = {};
+
+        if (updates.username !== undefined) updateData.username = updates.username;
+        if (updates.name !== undefined) updateData.name = updates.name;
+        if (updates.phone !== undefined) updateData.phone = updates.phone;
+        if (updates.country !== undefined) updateData.country = updates.country;
+        if (updates.walletAddress !== undefined) updateData.wallet_address = updates.walletAddress;
+        if (updates.position !== undefined) updateData.position = updates.position;
+        if (updates.status !== undefined) updateData.status = updates.status;
+
+        if (updates.email !== undefined) {
+            updateData.email = updates.email;
+            const { error: authError } = await supabase.auth.updateUser({ email: updates.email });
+            if (authError) throw authError;
+        }
+
+        const { error } = await supabase
+            .from('user_profiles')
+            .update(updateData)
+            .eq('id', user.id);
+
+        if (error) throw error;
     },
 
     uploadProfileImage: async (userId: string, file: File) => {
-        const formData = new FormData();
-        formData.append('id', userId);
-        formData.append('image', file);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${userId}-${Math.random()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
 
-        const response = await fetch('http://localhost/MLM-main/api/user.php', {
-            method: 'POST',
-            body: formData
-        });
+        const { error: uploadError } = await supabase.storage
+            .from('profiles')
+            .upload(filePath, file, { upsert: true });
 
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.message || 'Upload failed');
-        }
-        return data;
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('profiles')
+            .getPublicUrl(filePath);
+
+        const { error: updateError } = await supabase
+            .from('user_profiles')
+            .update({ image_url: publicUrl })
+            .eq('id', userId);
+
+        if (updateError) throw updateError;
+
+        return { success: true, imageUrl: publicUrl };
     }
 };
