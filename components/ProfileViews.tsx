@@ -50,7 +50,13 @@ export const ProfileDetails: React.FC = () => {
     }
   }, [user]);
 
-  if (!user) return <div className="p-8 text-white">Loading profile...</div>;
+  if (!user) {
+    return (
+      <div className="p-8 text-white">
+        <div className="animate-pulse">Loading profile data...</div>
+      </div>
+    );
+  }
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
