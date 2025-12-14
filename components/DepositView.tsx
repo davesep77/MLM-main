@@ -5,12 +5,18 @@ export const DepositView: React.FC = () => {
   const { deposits, depositFunds } = useAppContext();
   const [amount, setAmount] = useState('');
 
-  const handleDeposit = () => {
+  const handleDeposit = async () => {
     const val = parseFloat(amount);
     if (!isNaN(val) && val > 0) {
-      depositFunds(val);
-      setAmount('');
-      alert('Deposit Request Submitted Successfully!');
+      const success = await depositFunds(val);
+      if (success) {
+        setAmount('');
+        alert('Deposit Request Submitted Successfully!');
+      } else {
+        alert('Failed to submit deposit request. Please try again.');
+      }
+    } else {
+      alert('Please enter a valid amount greater than 0');
     }
   };
 
@@ -82,26 +88,34 @@ export const DepositView: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-nexus-primary/10">
-              {deposits.map((item) => (
-                <tr key={item.id} className="hover:bg-white/5 transition-colors text-white">
-                  <td className="px-6 py-4 whitespace-nowrap">{item.slNo}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.appliedDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">${item.usd}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.coinType}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.coinValue}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.approveDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button 
-                      className={`
-                        py-1.5 px-6 rounded text-white font-medium text-xs
-                        ${item.status === 'Approve' ? 'bg-teal-500 hover:bg-teal-600' : 'bg-red-500 hover:bg-red-600'}
-                      `}
-                    >
-                      {item.status}
-                    </button>
+              {deposits.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                    No deposits yet. Make your first deposit above!
                   </td>
                 </tr>
-              ))}
+              ) : (
+                deposits.map((item) => (
+                  <tr key={item.id} className="hover:bg-white/5 transition-colors text-white">
+                    <td className="px-6 py-4 whitespace-nowrap">{item.slNo}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.appliedDate}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">${item.usd}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.coinType}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.coinValue}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.approveDate}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        className={`
+                          py-1.5 px-6 rounded text-white font-medium text-xs
+                          ${item.status === 'Approve' ? 'bg-teal-500 hover:bg-teal-600' : 'bg-red-500 hover:bg-red-600'}
+                        `}
+                      >
+                        {item.status}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
