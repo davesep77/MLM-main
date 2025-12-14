@@ -247,37 +247,39 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             </button>
           </form>
 
-          <div className="mt-8 text-center space-y-4 relative z-10">
+          <div className="mt-8 text-center space-y-4 relative z-10 pb-4">
             {!isSignUp && (
               <button
                 type="button"
                 onClick={() => alert('Password reset functionality coming soon!')}
-                className="text-[#d946ef] font-bold hover:text-[#e879f9] text-base block w-full transition-all duration-200 hover:scale-105 active:scale-95 underline decoration-2 underline-offset-4 cursor-pointer py-2"
+                className="bg-white/10 hover:bg-white/20 text-white font-bold text-base w-full py-3 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer border border-[#d946ef]/50"
               >
                 Forgot Password?
               </button>
             )}
-            <div className="flex items-center justify-center gap-2 py-2">
-              <span className="text-white text-base">
-                {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setError('');
-                  setEmail('');
-                  setUsername('');
-                  setPassword('');
-                  setName('');
-                  setPhone('');
-                  setCountry('');
-                  setCaptcha('');
-                }}
-                className="text-[#d946ef] font-bold hover:text-[#e879f9] text-base transition-all duration-200 hover:scale-110 active:scale-95 underline decoration-2 underline-offset-4 cursor-pointer"
-              >
-                {isSignUp ? 'Sign In' : 'Sign Up'}
-              </button>
+            <div className="bg-white/10 rounded-lg p-4 border border-white/20">
+              <div className="flex flex-col items-center gap-3">
+                <span className="text-white text-base font-medium">
+                  {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setError('');
+                    setEmail('');
+                    setUsername('');
+                    setPassword('');
+                    setName('');
+                    setPhone('');
+                    setCountry('');
+                    setCaptcha('');
+                  }}
+                  className="bg-gradient-to-r from-[#d946ef] to-[#e879f9] hover:from-[#e879f9] hover:to-[#d946ef] text-white font-bold text-base px-8 py-3 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shadow-lg"
+                >
+                  {isSignUp ? 'Sign In Here' : 'Sign Up Here'}
+                </button>
+              </div>
             </div>
           </div>
 
