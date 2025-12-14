@@ -247,28 +247,38 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             </button>
           </form>
 
-          <div className="mt-8 text-center space-y-4">
+          <div className="mt-8 text-center space-y-3">
             {!isSignUp && (
-              <button className="text-white font-bold hover:text-purple-300 text-sm block w-full transition-colors drop-shadow-md">
-                Forgot Password ?
+              <button
+                type="button"
+                onClick={() => alert('Password reset functionality coming soon!')}
+                className="text-[#d946ef] font-bold hover:text-[#e879f9] text-sm block w-full transition-all duration-200 drop-shadow-md hover:scale-105 active:scale-95 underline decoration-1 underline-offset-4"
+              >
+                Forgot Password?
               </button>
             )}
-            <button
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError('');
-                setEmail('');
-                setUsername('');
-                setPassword('');
-                setName('');
-                setPhone('');
-                setCountry('');
-                setCaptcha('');
-              }}
-              className="text-white font-bold hover:text-purple-300 text-sm block w-full transition-colors drop-shadow-md"
-            >
-              {isSignUp ? 'Already have an account? Sign In' : "Don't Have an Account ? Click Here"}
-            </button>
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <span className="text-gray-400 text-sm">
+                {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError('');
+                  setEmail('');
+                  setUsername('');
+                  setPassword('');
+                  setName('');
+                  setPhone('');
+                  setCountry('');
+                  setCaptcha('');
+                }}
+                className="text-[#d946ef] font-bold hover:text-[#e879f9] text-sm transition-all duration-200 hover:scale-105 active:scale-95 underline decoration-2 underline-offset-4"
+              >
+                {isSignUp ? 'Sign In' : 'Sign Up'}
+              </button>
+            </div>
           </div>
 
           {/* Bottom Glow */}
