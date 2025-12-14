@@ -13,7 +13,7 @@ export interface SignUpData {
 }
 
 export interface SignInData {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -35,6 +35,7 @@ export const authService = {
         id: authData.user.id,
         username,
         name,
+        email,
         phone: phone || null,
         country: country || null,
         sponsor_id: sponsorId || null,
@@ -43,7 +44,6 @@ export const authService = {
       });
 
     if (profileError) {
-      await supabase.auth.admin.deleteUser(authData.user.id);
       throw profileError;
     }
 
@@ -51,14 +51,26 @@ export const authService = {
   },
 
   async signIn(data: SignInData) {
-    const { email, password } = data;
+    const { username, password } = data;
+
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('email')
+      .eq('username', username)
+      .maybeSingle();
+
+    if (!profile || !profile.email) {
+      throw new Error('Invalid username or password');
+    }
 
     const { data: authData, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: profile.email,
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      throw new Error('Invalid username or password');
+    }
 
     return authData;
   },

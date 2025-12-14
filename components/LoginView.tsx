@@ -13,6 +13,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
+  const [captcha, setCaptcha] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAppContext();
@@ -43,12 +44,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
           country,
         });
       } else {
-        if (!email || !password) {
-          setError('Please enter email and password');
+        if (!username || !password) {
+          setError('Please enter username and password');
           setLoading(false);
           return;
         }
-        await signIn({ email, password });
+        await signIn({ username, password });
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
@@ -110,7 +111,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
+            {isSignUp ? (
               <>
                 <div className="space-y-1">
                   <label className="text-white text-sm pl-1 font-medium">Username *</label>
@@ -137,6 +138,18 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 </div>
 
                 <div className="space-y-1">
+                  <label className="text-white text-sm pl-1 font-medium">Email Address *</label>
+                  <input
+                    type="email"
+                    placeholder="your.email@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
+                  />
+                </div>
+
+                <div className="space-y-1">
                   <label className="text-white text-sm pl-1 font-medium">Phone</label>
                   <input
                     type="tel"
@@ -157,39 +170,72 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
                   />
                 </div>
+
+                <div className="space-y-1">
+                  <label className="text-white text-sm pl-1 font-medium">Password *</label>
+                  <input
+                    type="password"
+                    placeholder="Enter password (min 6 characters)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
+                  />
+                </div>
               </>
-            )}
+            ) : (
+              <>
+                <div className="space-y-1">
+                  <label className="text-white text-sm pl-1 font-medium">Enter Your Username</label>
+                  <input
+                    type="text"
+                    placeholder="User ID"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
+                  />
+                </div>
 
-            <div className="space-y-1">
-              <label className="text-white text-sm pl-1 font-medium">Email Address *</label>
-              <input
-                type="email"
-                placeholder="your.email@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
-              />
-            </div>
+                <div className="space-y-1">
+                  <label className="text-white text-sm pl-1 font-medium">Enter Your Password</label>
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
+                  />
+                </div>
 
-            <div className="space-y-1">
-              <label className="text-white text-sm pl-1 font-medium">Password *</label>
-              <input
-                type="password"
-                placeholder="Enter password (min 6 characters)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium transition-shadow shadow-inner"
-              />
-            </div>
+                <div className="flex items-center gap-2 pl-1 py-1">
+                  <input type="checkbox" id="remember" className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer" />
+                  <label htmlFor="remember" className="text-white font-bold text-sm cursor-pointer select-none">Remember Me</label>
+                </div>
 
-            {!isSignUp && (
-              <div className="flex items-center gap-2 pl-1 py-1">
-                <input type="checkbox" id="remember" className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer" />
-                <label htmlFor="remember" className="text-white font-bold text-sm cursor-pointer select-none">Remember Me</label>
-              </div>
+                <div className="space-y-1">
+                  <label className="text-white text-sm pl-1 font-medium">Enter Captcha *</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-purple-100/90 rounded-lg flex items-center justify-center relative overflow-hidden select-none border border-purple-300">
+                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes-light.png')] opacity-20"></div>
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-50">
+                        <line x1="0" y1="100%" x2="100%" y2="0" stroke="purple" strokeWidth="1" />
+                        <line x1="0" y1="0" x2="100%" y2="100%" stroke="purple" strokeWidth="1" />
+                      </svg>
+                      <div className="relative z-10 font-mono text-2xl font-black text-purple-800 tracking-[0.2em] transform -rotate-2 drop-shadow-sm" style={{ fontFamily: 'Courier New, monospace' }}>6898</div>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Enter Captcha"
+                      value={captcha}
+                      onChange={(e) => setCaptcha(e.target.value)}
+                      className="w-full bg-white text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium text-center transition-shadow shadow-inner"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <button
@@ -202,14 +248,26 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
           </form>
 
           <div className="mt-8 text-center space-y-4">
+            {!isSignUp && (
+              <button className="text-white font-bold hover:text-purple-300 text-sm block w-full transition-colors drop-shadow-md">
+                Forgot Password ?
+              </button>
+            )}
             <button
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setError('');
+                setEmail('');
+                setUsername('');
+                setPassword('');
+                setName('');
+                setPhone('');
+                setCountry('');
+                setCaptcha('');
               }}
               className="text-white font-bold hover:text-purple-300 text-sm block w-full transition-colors drop-shadow-md"
             >
-              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+              {isSignUp ? 'Already have an account? Sign In' : "Don't Have an Account ? Click Here"}
             </button>
           </div>
 
