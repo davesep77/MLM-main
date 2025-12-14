@@ -30,16 +30,27 @@ import { userService } from '../services/userService';
 export const ProfileDetails: React.FC = () => {
   const { user, updateProfile, reloadUser } = useAppContext();
 
-  // Safe guard loading state
-  if (!user) return <div className="p-8 text-white">Loading profile...</div>;
-
   const [formData, setFormData] = React.useState({
-    username: user.username,
-    name: user.name, // Keep name if needed, but form shows "User Name" as "Gebeyehu" which is username
-    phone: user.phone,
-    email: user.email,
-    country: user.country
+    username: '',
+    name: '',
+    phone: '',
+    email: '',
+    country: ''
   });
+
+  React.useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || '',
+        name: user.name || '',
+        phone: user.phone || '',
+        email: user.email || '',
+        country: user.country || ''
+      });
+    }
+  }, [user]);
+
+  if (!user) return <div className="p-8 text-white">Loading profile...</div>;
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -110,9 +121,9 @@ export const ProfileDetails: React.FC = () => {
               value={formData.country}
               onChange={(e) => handleChange('country', e.target.value)}
             />
-            <InputGroup label="Sponsor ID" value={user.sponsorId} readOnly />
+            <InputGroup label="Sponsor ID" value={user.sponsorId || 'No Sponsor'} readOnly />
             <div className="md:col-span-2">
-              <InputGroup label="Sponsor Name" value={user.sponsorName} readOnly />
+              <InputGroup label="Sponsor Name" value={user.sponsorName || 'No Sponsor'} readOnly />
             </div>
 
             <div className="mt-4">
