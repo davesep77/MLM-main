@@ -169,10 +169,13 @@ export interface UserProfile {
   email: string;
   phone: string;
   country: string;
-  sponsorId: string;
-  sponsorName: string;
+  sponsorId?: string;
+  sponsorName?: string;
   walletAddress: string;
   image: string;
+  position?: 'Left' | 'Right';
+  status?: 'Active' | 'Inactive';
+  joinedAt?: string;
 }
 
 export interface ApiResponse<T> {

@@ -86,21 +86,27 @@ export const authService = {
 
     const { data: profile, error } = await supabase
       .from('user_profiles')
-      .select('*')
+      .select(`
+        *,
+        sponsor:user_profiles!sponsor_id(username, name)
+      `)
       .eq('id', user.id)
       .maybeSingle();
 
     if (error) throw error;
     if (!profile) return null;
 
+    const sponsorData = profile.sponsor as any;
+
     return {
       id: profile.id,
       username: profile.username,
       name: profile.name,
-      email: user.email || '',
+      email: profile.email || user.email || '',
       phone: profile.phone || '',
       country: profile.country || '',
       sponsorId: profile.sponsor_id,
+      sponsorName: sponsorData?.name || sponsorData?.username || '',
       walletAddress: profile.wallet_address || '',
       image: profile.image_url,
       position: profile.position,
