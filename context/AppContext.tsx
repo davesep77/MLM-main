@@ -147,6 +147,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }));
         setTransactions(txs);
       }
+
+      const { data: depositsData } = await supabase
+        .from('deposits')
+        .select('*')
+        .eq('user_id', userId)
+        .order('applied_date', { ascending: false });
+
+      if (depositsData) {
+        const depositHistory: DepositHistoryItem[] = depositsData.map((dep: any, index: number) => ({
+          id: dep.id,
+          slNo: depositsData.length - index,
+          appliedDate: new Date(dep.applied_date).toLocaleString(),
+          usd: Number(dep.amount),
+          coinType: dep.coin_type,
+          coinValue: Number(dep.coin_value),
+          approveDate: dep.approved_date ? new Date(dep.approved_date).toLocaleDateString() : '-',
+          status: dep.status === 'Approved' ? 'Approve' : dep.status
+        }));
+        setDeposits(depositHistory);
+      }
     } catch (error) {
       console.error('Failed to load wallets and history:', error);
     }
@@ -188,27 +208,51 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const depositFunds = async (amount: number): Promise<boolean> => {
+    if (!user) return false;
+
     setIsLoading(true);
     try {
-      await walletService.deposit(amount);
+      const { data: depositData, error } = await supabase
+        .from('deposits')
+        .insert({
+          user_id: user.id,
+          amount: amount,
+          coin_type: 'USDT.TRC20',
+          coin_value: amount,
+          status: 'Pending',
+          applied_date: new Date().toISOString()
+        })
+        .select()
+        .single();
 
-      // Optimistic Update
-      setWallets(prev => ({ ...prev, deposit: prev.deposit + amount }));
+      if (error) throw error;
 
       const newDeposit: DepositHistoryItem = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: depositData.id,
         slNo: deposits.length + 1,
-        appliedDate: new Date().toLocaleString(),
-        usd: amount,
-        coinType: 'USDT.TRC20',
-        coinValue: amount,
-        approveDate: new Date().toLocaleDateString(),
-        status: 'Approve'
+        appliedDate: new Date(depositData.applied_date).toLocaleString(),
+        usd: Number(depositData.amount),
+        coinType: depositData.coin_type,
+        coinValue: Number(depositData.coin_value),
+        approveDate: '-',
+        status: depositData.status
       };
       setDeposits(prev => [newDeposit, ...prev]);
+
+      await supabase
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          amount: amount,
+          type: 'Deposit',
+          wallet_type: 'deposit',
+          description: 'Deposit Request',
+          status: 'Pending'
+        });
+
       return true;
     } catch (e) {
-      console.error(e);
+      console.error('Deposit failed:', e);
       return false;
     } finally {
       setIsLoading(false);
