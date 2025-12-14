@@ -98,10 +98,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const loadUserData = async () => {
     try {
+      console.log('AppContext - Loading user data...');
       const currentUser = await authService.getCurrentUser();
+      console.log('AppContext - Retrieved user:', currentUser);
       if (currentUser) {
         setUser(currentUser);
         await loadWalletsAndHistory(currentUser.id);
+      } else {
+        console.log('AppContext - No user returned from authService');
       }
     } catch (error) {
       console.error('Failed to load user data:', error);

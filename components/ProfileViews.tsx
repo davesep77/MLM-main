@@ -39,6 +39,7 @@ export const ProfileDetails: React.FC = () => {
   });
 
   React.useEffect(() => {
+    console.log('ProfileDetails - user data:', user);
     if (user) {
       setFormData({
         username: user.username || '',
@@ -51,6 +52,7 @@ export const ProfileDetails: React.FC = () => {
   }, [user]);
 
   if (!user) {
+    console.log('ProfileDetails - No user data available');
     return (
       <div className="p-8 text-white">
         <div className="animate-pulse">Loading profile data...</div>
