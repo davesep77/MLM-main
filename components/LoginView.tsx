@@ -59,7 +59,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0f0518] flex items-center justify-center relative overflow-hidden font-sans">
+    <div className="min-h-screen w-full bg-[#0f0518] flex justify-center relative overflow-y-auto font-sans">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#1a0b2e] via-[#0f0518] to-[#2d1b4e]"></div>
 
@@ -69,7 +69,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
       <div className="absolute -left-20 top-20 w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute -right-20 bottom-20 w-96 h-96 bg-pink-600/20 rounded-full blur-[100px] pointer-events-none"></div>
 
-      <div className="z-10 w-full max-w-md p-4 animate-fadeIn">
+      <div className="z-10 w-full max-w-md p-4 py-8 animate-fadeIn">
         <div className="bg-white/5 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-[0_0_50px_rgba(139,92,246,0.3)] relative overflow-hidden">
           {/* Glow effects on card top edge */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-purple-400 to-transparent blur-[1px]"></div>
